@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# uv / virtual environment
+.venv/
+
+# Local database
+*.db
+
+# Environment overrides
+.env

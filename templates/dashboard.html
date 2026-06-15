@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard &middot; PDU Control{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <h1>PDU Dashboard</h1>
+  <p class="muted">Control and monitor the power distribution unit.</p>
+</section>
+
+<div class="dash-grid">
+  <div class="card status-card">
+    <div class="card-head">
+      <h2>Status</h2>
+      <span id="conn-pill" class="pill pill-muted" title="Hardware connection">
+        <span class="dot"></span><span id="conn-text">checking&hellip;</span>
+      </span>
+    </div>
+
+    <div class="state-display">
+      <div id="state-indicator" class="state-indicator state-unknown">
+        <span id="state-label" class="state-label">&mdash;</span>
+      </div>
+    </div>
+
+    <p id="error-banner" class="error-banner" hidden></p>
+  </div>
+
+  <div class="card control-card">
+    <div class="card-head">
+      <h2>Controls</h2>
+    </div>
+    <div class="control-buttons">
+      <button id="btn-on" class="btn btn-on btn-lg" type="button">
+        <span class="btn-glyph">&#9650;</span> Turn On
+      </button>
+      <button id="btn-off" class="btn btn-off btn-lg" type="button">
+        <span class="btn-glyph">&#9660;</span> Turn Off
+      </button>
+      <button id="btn-toggle" class="btn btn-ghost btn-lg" type="button">
+        &#8644; Toggle
+      </button>
+    </div>
+    <p class="muted small">Drives Arduino pin 13. Onboard LED mirrors the relay state.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% endblock %}

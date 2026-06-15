@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Users &middot; PDU Control{% endblock %}
+
+{% block content %}
+<section class="page-head">
+  <h1>User Management</h1>
+  <p class="muted">Create and remove accounts and assign roles.</p>
+</section>
+
+<div class="users-grid">
+  <div class="card">
+    <div class="card-head">
+      <h2>Add user</h2>
+    </div>
+    <form id="create-form" class="user-form">
+      <label class="field">
+        <span class="field-label">Username</span>
+        <input type="text" id="new-username" name="username" autocomplete="off" required />
+      </label>
+      <label class="field">
+        <span class="field-label">Password</span>
+        <input type="password" id="new-password" name="password" autocomplete="new-password" required />
+      </label>
+      <label class="field">
+        <span class="field-label">Role</span>
+        <select id="new-role" name="role">
+          <option value="operator">operator</option>
+          <option value="admin">admin</option>
+        </select>
+      </label>
+      <button type="submit" class="btn btn-primary">Create user</button>
+      <p id="create-msg" class="form-msg" hidden></p>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h2>Accounts</h2>
+      <button id="refresh-users" class="btn btn-ghost btn-sm" type="button">Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-body">
+          <tr><td colspan="4" class="muted">Loading&hellip;</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.CURRENT_USER_ID = {{ current_user.id | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+{% endblock %}
