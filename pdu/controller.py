@@ -14,11 +14,37 @@ Design goals:
   active-high and active-low relay boards.
 """
 
+import errno
+import platform
 import threading
 from enum import Enum
 
 import serial
 from pyfirmata2 import Arduino
+
+
+def _looks_like_permission_error(exc: Exception) -> bool:
+    """True if ``exc`` indicates the OS denied access to the serial device."""
+    if isinstance(exc, PermissionError):
+        return True
+    if isinstance(exc, OSError) and exc.errno in (errno.EACCES, errno.EPERM):
+        return True
+    return "permission denied" in str(exc).lower()
+
+
+def _permission_hint(serial_port: str) -> str:
+    """Return an OS-appropriate remediation hint for a serial permission error."""
+    if platform.system() == "Linux":
+        return (
+            f" Permission denied opening {serial_port}. On Linux the device is "
+            "owned by the 'dialout' group; add your user with "
+            "'sudo usermod -aG dialout \"$USER\"', then log out and back in "
+            "(or run 'newgrp dialout') and restart the app."
+        )
+    return (
+        f" Permission denied opening {serial_port}. Ensure no other program is "
+        "using the port and that your user may access the serial device."
+    )
 
 
 class _NoResetSerial(serial.Serial):
@@ -130,10 +156,11 @@ class PduController:
             self._board = None
             self._pin = None
             self._state = PduState.UNKNOWN
-            self._connect_error = str(exc)
-            raise PduError(
-                f"Could not open Arduino on {self._serial_port!r}: {exc}"
-            ) from exc
+            message = f"Could not open Arduino on {self._serial_port!r}: {exc}"
+            if _looks_like_permission_error(exc):
+                message += _permission_hint(self._serial_port)
+            self._connect_error = message
+            raise PduError(message) from exc
 
     def _ensure_connected_locked(self):
         if self._board is None:
