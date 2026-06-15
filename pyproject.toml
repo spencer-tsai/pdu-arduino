@@ -1,9 +1,10 @@
 [project]
 name = "pdu-web-control"
 version = "0.1.0"
-description = "Flask web app to control a PDU via Arduino Uno (StandardFirmata) pin 13"
+description = "Flask web app to control a PDU via Arduino Uno (StandardFirmata)"
 requires-python = ">=3.11"
 dependencies = [
+    "cryptography>=49.0.0",
     "flask>=3.1.3",
     "flask-login>=0.6.3",
     "flask-sqlalchemy>=3.1.1",

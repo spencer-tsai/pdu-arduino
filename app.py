@@ -8,12 +8,18 @@ Run locally with uv::
 
     uv run python app.py
 
-or via the Flask CLI::
+This entry point honors the TLS settings in ``config.py`` (HTTPS on ``PORT``,
+default 8443). The Flask CLI (``uv run flask --app app run``) does NOT apply the
+``ssl_context``/``PORT`` wiring below, so it serves plain HTTP; because the
+session cookie is marked ``Secure`` whenever ``USE_HTTPS`` is true (the
+default), logins would silently fail over that HTTP path. If you must use the
+Flask CLI, disable TLS so the cookie is not ``Secure``-only::
 
-    uv run flask --app app run
+    USE_HTTPS=false uv run flask --app app run
 """
 
 import atexit
+import os
 
 from flask import Flask, redirect, render_template, url_for
 from flask_login import login_required
@@ -49,6 +55,12 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     """Build and configure the Flask application."""
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    app.logger.info(
+        "Detected OS %s; using serial port %s",
+        app.config["PLATFORM"],
+        app.config["SERIAL_PORT"],
+    )
 
     # Core extensions.
     db.init_app(app)
@@ -91,5 +103,40 @@ def create_app(config_class: type[Config] = Config) -> Flask:
 app = create_app()
 
 
+def _resolve_ssl_context(flask_app: Flask):
+    """Build the ``ssl_context`` for ``app.run`` based on configuration.
+
+    Returns ``None`` (plain HTTP) when HTTPS is disabled. Otherwise prefers the
+    configured cert/key pair; if those files are missing it falls back to an
+    ephemeral self-signed cert ("adhoc"), raising a clear error if the
+    ``cryptography`` package needed for that fallback is not installed.
+    """
+    if not flask_app.config["USE_HTTPS"]:
+        return None
+
+    cert = flask_app.config["SSL_CERT_FILE"]
+    key = flask_app.config["SSL_KEY_FILE"]
+    if os.path.exists(cert) and os.path.exists(key):
+        return (cert, key)
+
+    flask_app.logger.warning(
+        "TLS cert/key not found at %r / %r; using an ephemeral self-signed "
+        "certificate. Generate a persistent pair (see config.py) to avoid this.",
+        cert,
+        key,
+    )
+    return "adhoc"
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
+    ssl_context = _resolve_ssl_context(app)
+    scheme = "https" if ssl_context else "http"
+    port = app.config["PORT"]
+    app.logger.info("Serving on %s://0.0.0.0:%s", scheme, port)
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=True,
+        use_reloader=False,
+        ssl_context=ssl_context,
+    )

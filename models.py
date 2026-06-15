@@ -16,10 +16,10 @@ ROLE_ADMIN = "admin"
 ROLE_OPERATOR = "operator"
 ROLES = (ROLE_ADMIN, ROLE_OPERATOR)
 
-# Seeded on first run only when the users table is empty. The README documents
-# changing this password after the first login.
+# Seeded on first run only when the users table is empty. This matches the
+# credentials documented in the README; change it after the first login.
 DEFAULT_ADMIN_USERNAME = "admin"
-DEFAULT_ADMIN_PASSWORD = "pDU@binDU2026"
+DEFAULT_ADMIN_PASSWORD = "adminPdu2026"
 
 
 class User(UserMixin, db.Model):

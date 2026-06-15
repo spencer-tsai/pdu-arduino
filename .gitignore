@@ -10,3 +10,6 @@ __pycache__/
 
 # Environment overrides
 .env
+
+# TLS certificates / private keys
+certs/
