@@ -8,6 +8,40 @@ API.
 Designed to run on macOS and Ubuntu/Linux: the serial device is auto-detected
 per OS, so no code or config changes are needed to move between them.
 
+## Hardware
+
+Key parts:
+- Relay: 5V GPIO control 110v/220v.
+- Arduino Uno
+- Power Outlet: Two-prong
+
+### Wiring diagram
+
+```
+┌──────────────┐    USB / Serial    ┌─────────────────────────┐
+│   Computer   │◄─── (Firmata) ────►│      Arduino Uno        │
+│   (Web App)  │                    │                         │
+└──────────────┘                    │  5V    GND    Pin 8(OUT)│
+                                    └──┬──────┬───────┬───────┘
+                                       │      │       │
+                                    ┌──┴──────┴───────┴───────┐
+                                    │  Relay Module (5V, NO)  │
+                                    │  VCC     GND      IN    │
+                                    │                         │
+                                    │  COM            NO      │
+                                    └────┬─────────────┬──────┘
+                                         │             │
+ AC Mains ─ LIVE (Fire) ─────────────────┘             └─── LIVE ──┐
+                                                                    ├──► Power Outlet
+ AC Mains ─ NEUTRAL ──────────────────────────────────── NEUTRAL ───┘
+```
+
+- **Control path:** The web app sends Firmata commands over USB; the Arduino drives Pin 8 HIGH (ON) or LOW (OFF).
+- **Relay coil:** Powered from Arduino 5V/GND; the IN signal from Pin 8 energises the coil.
+- **Relay switch (NO):** COM ↔ NO is open at rest. When Pin 8 goes HIGH the contacts close, completing the LIVE circuit.
+- **AC wiring:** Only the LIVE (fire) wire is switched through the relay. NEUTRAL passes straight through to the outlet.
+
+
 ## Architecture
 
 ```
@@ -135,6 +169,28 @@ Notes:
   occurs at startup, not on each On/Off command.
 - To eliminate even the startup reset entirely, add a ~10 µF capacitor between
   the Uno's `RESET` and `GND` pins (remove it when uploading a new sketch).
+
+### Preserving PDU state across app restarts
+
+Stopping the app (Ctrl+C) does **not** reset the board — the serial port is
+closed with DTR/RTS held low (see `_NoResetSerial` in `pdu/controller.py`).
+However, **relaunching** the app re-opens the serial port, and the OS asserts
+DTR during the `open()` syscall itself, which resets the Uno. StandardFirmata
+then re-initializes every pin to input/LOW, so the relay drops and the PDU
+turns off. This open-time reset happens below the application layer and cannot
+be reliably suppressed in software on macOS/Linux.
+
+To keep the PDU powered across app restarts, **disable the auto-reset in
+hardware**: solder or breadboard a **~10 µF capacitor between `RESET` and
+`GND`** (longer/`+` leg to `RESET`). With the capacitor in place:
+
+- Relaunching the app no longer resets the board, so the pin holds its last
+  state and the PDU stays on (or off) with no power blip.
+- The capacitor must be **removed (or briefly lifted) when uploading a new
+  sketch**, since the Arduino IDE relies on the auto-reset to flash.
+
+(The board still performs a one-time reset on physical power-up or USB replug,
+which is expected.)
 
 ## OS detection / serial port
 
