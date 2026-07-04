@@ -1,5 +1,6 @@
 :root {
   --bg: #eef5ff;
+  --grad-1: #dbeafe;
   --bg-elev: #ffffff;
   --card: #ffffff;
   --card-2: #eaf2fe;
@@ -13,9 +14,35 @@
   --off: #ef4444;
   --off-glow: rgba(239, 68, 68, 0.2);
   --warn: #f59e0b;
-  --radius: 14px;
+  --topbar-bg: rgba(255, 255, 255, 0.8);
+  --btn-hover: #dfeaff;
   --shadow: 0 10px 30px rgba(47, 128, 237, 0.12);
+  --seg-shadow: 0 1px 4px rgba(47, 128, 237, 0.2);
+  --radius: 14px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ---------- Dark theme ---------- */
+html[data-theme="dark"] {
+  --bg: #0d1526;
+  --grad-1: #16305e;
+  --bg-elev: #16223a;
+  --card: #16223a;
+  --card-2: #1e2d49;
+  --border: #2a3c5c;
+  --text: #e8eefb;
+  --muted: #93a3c0;
+  --primary: #4a92f5;
+  --primary-hover: #6aa6f7;
+  --on: #22c55e;
+  --on-glow: rgba(34, 197, 94, 0.25);
+  --off: #f16060;
+  --off-glow: rgba(241, 96, 96, 0.22);
+  --warn: #fbbf24;
+  --topbar-bg: rgba(18, 28, 48, 0.82);
+  --btn-hover: #26375a;
+  --shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+  --seg-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
 * { box-sizing: border-box; }
@@ -23,11 +50,12 @@
 html, body {
   margin: 0;
   padding: 0;
-  background: radial-gradient(1200px 600px at 80% -10%, #dbeafe 0%, var(--bg) 55%);
+  background: radial-gradient(1200px 600px at 80% -10%, var(--grad-1) 0%, var(--bg) 55%);
   color: var(--text);
   font-family: var(--font);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  transition: background 0.35s ease, color 0.35s ease;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -38,8 +66,9 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: 24px;
   padding: 14px 24px;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--topbar-bg);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -68,7 +97,7 @@ a { color: inherit; text-decoration: none; }
 .nav-link:hover { background: var(--card-2); color: var(--text); }
 .nav-link.active { background: var(--card-2); color: var(--text); }
 
-.user-box { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.user-box { display: flex; align-items: center; gap: 12px; margin-left: auto; }
 .user-name { font-size: 0.9rem; color: var(--muted); }
 .logout-form { margin: 0; }
 
@@ -82,6 +111,47 @@ a { color: inherit; text-decoration: none; }
 }
 .role-admin { color: var(--primary); border-color: rgba(47, 128, 237, 0.5); }
 .role-operator { color: var(--muted); }
+
+/* ---------- Theme toggle (segmented) ---------- */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.theme-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.theme-seg:hover { color: var(--text); }
+.theme-seg.active {
+  background: var(--bg-elev);
+  color: var(--text);
+  box-shadow: var(--seg-shadow);
+}
+.theme-seg-glyph { font-size: 0.9em; line-height: 1; }
+/* Floating variant for pages without a topbar (e.g. login) */
+.theme-toggle-float {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  box-shadow: var(--shadow);
+}
 
 /* ---------- Layout ---------- */
 .container { max-width: 960px; margin: 0 auto; padding: 28px 24px 64px; }
@@ -102,6 +172,10 @@ a { color: inherit; text-decoration: none; }
 .flash-error { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.35); color: #b91c1c; }
 .flash-info { background: rgba(47, 128, 237, 0.1); border-color: rgba(47, 128, 237, 0.35); color: #1d4ed8; }
 .flash-success { background: rgba(22, 163, 74, 0.1); border-color: rgba(22, 163, 74, 0.35); color: #15803d; }
+
+html[data-theme="dark"] .flash-error { color: #fca5a5; }
+html[data-theme="dark"] .flash-info { color: #93c5fd; }
+html[data-theme="dark"] .flash-success { color: #86efac; }
 
 /* ---------- Cards ---------- */
 .card {
@@ -184,6 +258,7 @@ a { color: inherit; text-decoration: none; }
   color: #92600a;
   font-size: 0.85rem;
 }
+html[data-theme="dark"] .error-banner { color: #fcd34d; }
 
 /* ---------- Controls ---------- */
 .control-card { display: flex; flex-direction: column; }
@@ -203,7 +278,7 @@ a { color: inherit; text-decoration: none; }
   cursor: pointer;
   transition: transform 0.08s, background 0.15s, opacity 0.15s, box-shadow 0.15s;
 }
-.btn:hover { background: #dfeaff; }
+.btn:hover { background: var(--btn-hover); }
 .btn:active { transform: translateY(1px); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-sm { padding: 6px 12px; font-size: 0.82rem; }
@@ -224,6 +299,7 @@ a { color: inherit; text-decoration: none; }
   color: #dc2626;
 }
 .btn-danger:hover { background: rgba(239, 68, 68, 0.1); }
+html[data-theme="dark"] .btn-danger { color: var(--off); }
 
 /* ---------- Forms ---------- */
 .field { display: block; margin-bottom: 14px; }
@@ -249,13 +325,10 @@ input:focus, select:focus {
 .form-msg { margin: 12px 0 0; font-size: 0.85rem; }
 .form-msg.ok { color: var(--on); }
 .form-msg.err { color: #b91c1c; }
+html[data-theme="dark"] .form-msg.err { color: #fca5a5; }
 
 /* ---------- Dashboard mascot ---------- */
 .mascot-card {
-  /* Span the full width of the grid: on wide screens the status and controls
-     cards sit side by side, so this places the image on its own bottom row
-     spanning both columns; when the grid collapses to one column it simply
-     fills that single column. */
   grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
